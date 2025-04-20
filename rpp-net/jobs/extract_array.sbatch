@@ -36,6 +36,6 @@ python src/run_worker.py \
         --chunk_id "$CHUNK_ID" \
         --max_depth 2 \
         --max_nodes 1000 \
-        --n_concurrent 5
+        --n_concurrent 2
 
 echo "✅  SLURM task $SLURM_ARRAY_TASK_ID finished @ $(date)"
