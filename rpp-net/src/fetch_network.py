@@ -74,9 +74,12 @@ async def _crawl(root_doi: str,
             doi, depth = frontier.pop(0)
             if doi in visited: continue
             visited.add(doi)
-
-            encoded_doi = doi.replace("/", "%2F")
-            url = f"{BASE}/works/doi:{encoded_doi}"
+            
+            if doi.startswith('W'):
+                url = f"{BASE}/works/{doi}"
+            else:
+                encoded_doi = doi.replace("/", "%2F").replace(":", "%3A")
+                url = f"{BASE}/works/doi:{encoded_doi}"
             async with sem: meta = await _get_json(sess, url)
             if meta.get("publication_year", 0) > cutoff:
                 continue                                         # temporal slice
