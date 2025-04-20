@@ -1,0 +1,10 @@
+pandas
+pyalex
+requests
+networkx
+numpy
+aiohttp
+nest_asyncio
+orjson
+python-louvain
+scipy
