@@ -33,7 +33,7 @@ Returns a dictionary with:
     - author_edges: List of (author_id, paper_doi) author-paper pairs
     - root_meta: Metadata for the root paper
 '''
-import asyncio, aiohttp, nest_asyncio, logging, os, re, time
+import asyncio, aiohttp, nest_asyncio, logging, os, re, time, random
 import orjson as json
 
 nest_asyncio.apply()
@@ -41,19 +41,49 @@ BASE = os.getenv("OPENALEX_ENDPOINT", "https://api.openalex.org")
 
 log = logging.getLogger(__name__)
 
-async def _get_json(session: aiohttp.ClientSession, url: str) -> dict:
-    #retries for robustness
-    retries = 3
+# ── Per‑task rate‑cap ──────────────────────────────────────────
+# We allow at most 5 requests / second *inside this Python process*.
+MIN_DELAY = 0.20          # seconds   (1 / 5  r/s)
+_last_call = 0.0
+_lock = asyncio.Lock()    # protects _last_call across async tasks
+
+async def _get_json(session: aiohttp.ClientSession, url: str, retries: int = 3) -> dict:
+    """
+    Single HTTP GET with:
+        • local rate‑cap   (MIN_DELAY between calls)
+        • 429 handling     (obey Retry‑After or exponential back‑off)
+        • up to <retries> attempts on 429 / network errors
+    """
+    global _last_call
+    backoff = 2  # starting back‑off for non‑429 errors
+
     for attempt in range(retries):
+        # ---- RATE LIMIT: make sure we wait MIN_DELAY since last request ----
+        async with _lock:
+            wait = MAX(0, MIN_DELAY - (time.time() - _last_call))
+            if wait:
+                await asyncio.sleep(wait)
+            _last_call = time.time()          # reserve slot
+
         try:
             async with session.get(url, timeout=60) as r:
+                if r.status == 429:           # Too many requests
+                    retry = int(r.headers.get("Retry-After", backoff))
+                    jitter = random.uniform(0, 0.5)
+                    log.warning("429 received, sleeping %.2fs", retry + jitter)
+                    await asyncio.sleep(retry + jitter)
+                    backoff *= 2
+                    continue                  # retry loop
                 r.raise_for_status()
                 return await r.json()
+
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             if attempt == retries - 1:
-                raise
-            log.warning(f"Request failed: {e}. Retrying ({attempt+1}/{retries})...")
-            await asyncio.sleep(1 * (attempt + 1))  # Exponential backoff
+                raise                          # bubble up after final attempt
+            log.warning("Request failed: %s. Retrying (%d/%d)…",
+                        e, attempt + 1, retries)
+            await asyncio.sleep(backoff + random.uniform(0, 0.5))
+            backoff *= 2
 
 async def _crawl(root_doi: str,
                  cutoff: int,
