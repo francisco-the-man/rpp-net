@@ -35,7 +35,6 @@ feats = features_from_network(raw_net_dict, root_doi="10.1037/...")
 # → {'doi': '10.1037/…', 'n_nodes': 713, 'in_deg': 15, …}
 """
 
-from __future__ import annotations
 import networkx as nx, numpy as np
 import networkx.algorithms.community as nxcom
 from typing import Dict, Any
