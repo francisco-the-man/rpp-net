@@ -35,6 +35,7 @@ Returns a dictionary with:
 '''
 import asyncio, aiohttp, nest_asyncio, logging, os, re, time, random
 import orjson as json
+from email.utils import parsedate_tz, mktime_tz
 
 nest_asyncio.apply()
 BASE = os.getenv("OPENALEX_ENDPOINT", "https://api.openalex.org")
@@ -58,30 +59,39 @@ async def _get_json(session: aiohttp.ClientSession, url: str, retries: int = 3) 
     backoff = 2  # starting back‑off for non‑429 errors
 
     for attempt in range(retries):
-        # ---- RATE LIMIT: make sure we wait MIN_DELAY since last request ----
         async with _lock:
             wait = max(0, MIN_DELAY - (time.time() - _last_call))
             if wait:
                 await asyncio.sleep(wait)
-            _last_call = time.time()          # reserve slot
+            _last_call = time.time()
 
         try:
             async with session.get(url, timeout=60) as r:
-                if r.status == 429:           # Too many requests
-                    retry = int(r.headers.get("Retry-After", backoff))
+                if r.status == 429:
+                    retry_after = r.headers.get("Retry-After", str(backoff))
+                    # Handle both integer seconds and HTTP date format
+                    try:
+                        retry = int(retry_after)
+                    except ValueError:
+                        # Parse HTTP date format
+                        retry_date = parsedate_tz(retry_after)
+                        if retry_date is None:
+                            retry = backoff
+                        else:
+                            retry = max(0, mktime_tz(retry_date) - time.time())
+                    
                     jitter = random.uniform(0, 0.5)
-                    log.warning("429 received, sleeping %.2fs", retry + jitter)
+                    log.warning(f"429 received, sleeping {retry + jitter:.2f}s")
                     await asyncio.sleep(retry + jitter)
                     backoff *= 2
-                    continue                  # retry loop
+                    continue
                 r.raise_for_status()
                 return await r.json()
 
         except (aiohttp.ClientError, asyncio.TimeoutError) as e:
             if attempt == retries - 1:
-                raise                          # bubble up after final attempt
-            log.warning("Request failed: %s. Retrying (%d/%d)…",
-                        e, attempt + 1, retries)
+                raise
+            log.warning(f"Request failed: {e}. Retrying ({attempt+1}/{retries})...")
             await asyncio.sleep(backoff + random.uniform(0, 0.5))
             backoff *= 2
 
