@@ -44,7 +44,7 @@ log = logging.getLogger(__name__)
 
 # ── Per‑task rate‑cap ──────────────────────────────────────────
 # We allow at most 5 requests / second *inside this Python process*.
-MIN_DELAY = 0.40          # seconds   (1 / 5  r/s)
+MIN_DELAY = 1.0          # seconds   (1 / 5  r/s)
 _last_call = 0.0
 _lock = asyncio.Lock()    # protects _last_call across async tasks
 

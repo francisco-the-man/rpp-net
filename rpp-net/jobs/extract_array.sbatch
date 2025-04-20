@@ -15,7 +15,7 @@
 ###############################################################################
 
 #SBATCH --job-name=rpp_net
-#SBATCH --array=0-10                     # 100 chunks → adjust if n_chunks differs
+#SBATCH --array=0-5                     # 100 chunks → adjust if n_chunks differs
 #SBATCH --cpus-per-task=4               # aiohttp concurrency lives on threads
 #SBATCH --mem=8G
 #SBATCH --time=02:00:00
@@ -36,6 +36,6 @@ python src/run_worker.py \
         --chunk_id "$CHUNK_ID" \
         --max_depth 2 \
         --max_nodes 1000 \
-        --n_concurrent 2
+        --n_concurrent 1
 
 echo "✅  SLURM task $SLURM_ARRAY_TASK_ID finished @ $(date)"
