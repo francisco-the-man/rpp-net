@@ -2,7 +2,7 @@
 ###############################################################################
 #  SLURM  JOB‑ARRAY  —  RPP network & homophily feature extraction
 #
-#  One task  =  one CSV chunk (≈ 1 ~ n DOIs) created by split_targets.py
+#  One task  =  one CSV chunk (≈ 1 ~ n DOIs) created by split_targets.py
 #  Each task:
 #     • creates a disposable venv in $TMPDIR  (fast local storage)
 #     • installs Python deps             (cached wheels → quick)
@@ -23,25 +23,19 @@
 # SBATCH --gres=       # comment in if GPUs are ever needed
 
 set -euo pipefail
-echo "🟢  SLURM task $SLURM_ARRAY_TASK_ID starting on $(hostname) at $(date)"
+echo "🟢  SLURM task $SLURM_ARRAY_TASK_ID on $(hostname) @ $(date)"
 
-# Create virtual environment
-VENV_DIR="$TMPDIR/rpp_net_env"
-python3 -m venv "$VENV_DIR"
-source "$VENV_DIR/bin/activate"
+VENV_HOME=$HOME/venvs/rpp_net_env          # same path used above
+source "$VENV_HOME/bin/activate"
 
-pip install --no-cache-dir -r requirements.txt
-
-# Set API key for OpenAlex
 export OPENALEX_API_KEY="averylou@stanford.edu"
 export OPENALEX_USER_AGENT="mailto:averylou@stanford.edu"
 
-# Run the worker script
 CHUNK_ID=$(printf "%02d" "${SLURM_ARRAY_TASK_ID}")
 python src/run_worker.py \
-    --chunk_id "$CHUNK_ID" \
-    --max_depth 2 \
-    --max_nodes 1000 \
-    --n_concurrent 5
+        --chunk_id "$CHUNK_ID" \
+        --max_depth 2 \
+        --max_nodes 1000 \
+        --n_concurrent 5
 
-echo "✅  SLURM task $SLURM_ARRAY_TASK_ID finished at $(date)"
+echo "✅  SLURM task $SLURM_ARRAY_TASK_ID finished @ $(date)"
