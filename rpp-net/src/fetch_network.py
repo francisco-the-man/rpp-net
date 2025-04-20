@@ -60,7 +60,7 @@ async def _get_json(session: aiohttp.ClientSession, url: str, retries: int = 3) 
     for attempt in range(retries):
         # ---- RATE LIMIT: make sure we wait MIN_DELAY since last request ----
         async with _lock:
-            wait = MAX(0, MIN_DELAY - (time.time() - _last_call))
+            wait = max(0, MIN_DELAY - (time.time() - _last_call))
             if wait:
                 await asyncio.sleep(wait)
             _last_call = time.time()          # reserve slot

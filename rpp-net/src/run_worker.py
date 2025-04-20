@@ -43,6 +43,10 @@ def parse():
 
 def main():
     args = parse()
+    # Create output directories if they don't exist
+    pathlib.Path("data/features").mkdir(parents=True, exist_ok=True)
+    pathlib.Path("data/networks_raw").mkdir(parents=True, exist_ok=True)
+    
     cid = f"{int(args.chunk_id):02}"
     chunk_path = pathlib.Path(f"data/chunks/chunk_{cid}.csv")
     out_path   = pathlib.Path(f"data/features/results_chunk_{cid}.csv")
