@@ -33,7 +33,6 @@ Returns a dictionary with:
     - author_edges: List of (author_id, paper_doi) author-paper pairs
     - root_meta: Metadata for the root paper
 '''
-from __future__ import annotations
 import asyncio, aiohttp, nest_asyncio, logging, os, re, time
 import orjson as json
 
