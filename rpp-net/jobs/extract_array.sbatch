@@ -29,7 +29,6 @@ echo "🟢  SLURM task $SLURM_ARRAY_TASK_ID starting on $(hostname) at $(date)"
 VENV_DIR="$TMPDIR/rpp_net_env"
 python3 -m venv "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
-pip install --upgrade pip wheel > /dev/null
 pip install --quiet -r requirements.txt   # uses cached wheels after first task
 pip install --quiet python-louvain
 

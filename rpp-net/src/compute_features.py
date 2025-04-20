@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Graph‑feature extractor (citation structure + authorship homophily).
 
@@ -36,8 +37,8 @@ feats = features_from_network(raw_net_dict, root_doi="10.1037/...")
 """
 
 import networkx as nx, numpy as np
-import networkx.algorithms.community as nxcom
 from typing import Dict, Any
+import community as community_louvain  # Import python-louvain as community
 
 def _gini(values):
     if not values: return None
@@ -64,8 +65,8 @@ def features_from_network(net: Dict[str, Any], root_doi: str) -> dict:
     }
 
     # -------------- Modularity ---------------------
-    parts = nxcom.louvain_communities(Ud_ego, seed=0)
-    feats["modularity"] = nxcom.modularity(Ud_ego, parts)
+    partition = community_louvain.best_partition(Ud_ego)
+    feats["modularity"] = community_louvain.modularity(partition, Ud_ego)
 
     # -------------- Gini of citations --------------
     cites = [G.out_degree(n) for n in Ud_ego.nodes]
