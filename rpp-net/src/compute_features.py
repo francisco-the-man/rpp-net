@@ -122,12 +122,12 @@ def features_from_network(net: Dict[str, Any], root_doi: str) -> dict:
         except ZeroDivisionError:  # single‑category
             return None
 
-    feats |= {
+    feats.update({
         "assort_inst":    assort(attr_inst,    "inst"),
         "assort_country": assort(attr_country, "country"),
         "assort_topic":   assort(attr_topic,   "topic"),
         "assort_gender":  assort(attr_gender,  "gender"),
-    }
+    })
 
     # root‑centric fallback
     root_authors = []
