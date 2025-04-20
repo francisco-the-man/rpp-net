@@ -30,18 +30,7 @@ VENV_DIR="$TMPDIR/rpp_net_env"
 python3 -m venv "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
 
-# Install packages one by one to avoid dependency issues
-pip install --no-cache-dir multidict
-pip install --no-cache-dir aiohttp
-pip install --no-cache-dir nest_asyncio
-pip install --no-cache-dir orjson
-pip install --no-cache-dir numpy
-pip install --no-cache-dir scipy
-pip install --no-cache-dir pandas
-pip install --no-cache-dir networkx
-pip install --no-cache-dir requests
-pip install --no-cache-dir pyalex
-pip install --no-cache-dir python-louvain
+pip install --no-cache-dir -r requirements.txt
 
 # Set API key for OpenAlex
 export OPENALEX_API_KEY="averylou@stanford.edu"
