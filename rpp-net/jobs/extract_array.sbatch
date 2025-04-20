@@ -33,6 +33,7 @@ pip install --upgrade pip wheel > /dev/null
 pip install --quiet -r requirements.txt   # uses cached wheels after first task
 pip install --quiet python-louvain
 
+export OPENALEX_API_KEY="averylou@stanford.edu"
 
 CHUNK_ID=$(printf "%02d" "${SLURM_ARRAY_TASK_ID}")
 python src/run_worker.py \
