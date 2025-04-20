@@ -25,15 +25,29 @@
 set -euo pipefail
 echo "🟢  SLURM task $SLURM_ARRAY_TASK_ID starting on $(hostname) at $(date)"
 
-
+# Create virtual environment
 VENV_DIR="$TMPDIR/rpp_net_env"
 python3 -m venv "$VENV_DIR"
 source "$VENV_DIR/bin/activate"
-pip install --quiet -r requirements.txt   # uses cached wheels after first task
-pip install --quiet python-louvain
 
+# Install packages one by one to avoid dependency issues
+pip install --no-cache-dir multidict
+pip install --no-cache-dir aiohttp
+pip install --no-cache-dir nest_asyncio
+pip install --no-cache-dir orjson
+pip install --no-cache-dir numpy
+pip install --no-cache-dir scipy
+pip install --no-cache-dir pandas
+pip install --no-cache-dir networkx
+pip install --no-cache-dir requests
+pip install --no-cache-dir pyalex
+pip install --no-cache-dir python-louvain
+
+# Set API key for OpenAlex
 export OPENALEX_API_KEY="averylou@stanford.edu"
+export OPENALEX_USER_AGENT="mailto:averylou@stanford.edu"
 
+# Run the worker script
 CHUNK_ID=$(printf "%02d" "${SLURM_ARRAY_TASK_ID}")
 python src/run_worker.py \
     --chunk_id "$CHUNK_ID" \
