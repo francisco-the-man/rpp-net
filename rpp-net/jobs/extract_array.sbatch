@@ -15,7 +15,7 @@
 ###############################################################################
 
 #SBATCH --job-name=rpp_net
-#SBATCH --array=0-5                     # 100 chunks → adjust if n_chunks differs
+#SBATCH --array=0-99%5                     # 100 chunks → adjust if n_chunks differs
 #SBATCH --cpus-per-task=4               # aiohttp concurrency lives on threads
 #SBATCH --mem=8G
 #SBATCH --time=02:00:00
