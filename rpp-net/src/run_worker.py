@@ -1,27 +1,28 @@
+# -*- coding: utf-8 -*-
 """
-SLURM task wrapper: fetch → featureify → write CSV  (one chunk per job).
+SLURM task wrapper: fetch -> featureify -> write CSV (one chunk per job).
 
 Each task:
 
-1. Reads `data/chunks/chunk_<ID>.csv`, a list of DOIs plus meta columns
+1. Reads data/chunks/chunk_<ID>.csv, a list of DOIs plus meta columns
 2. For every DOI:
-     a. Determine `cutoff_year`  = replication_year (if present) else pub_year
-     b. Call `fetch_network_sync(...)`
-     c. Persist raw JSON to `data/networks_raw/{doi}.json`
-     d. Call `features_from_network(...)` → dict
-3. Appends all rows to `data/features/results_chunk_<ID>.csv`
+     a. Determine cutoff_year = replication_year (if present) else pub_year
+     b. Call fetch_network_sync(...)
+     c. Persist raw JSON to data/networks_raw/{doi}.json
+     d. Call features_from_network(...) -> dict
+3. Appends all rows to data/features/results_chunk_<ID>.csv
 
 CLI flags (parsed with argparse)
 --------------------------------
---chunk_id      Two‑digit chunk number (00‑99)
+--chunk_id      Two-digit chunk number (00-99)
 --max_depth     BFS depth (default 2)
 --max_nodes     Node budget cap (default 1000)
 --n_concurrent  Concurrent HTTP requests per task (default 32)
 
-Logging: INFO level to stdout; each processed DOI logs ✅ / ❌ status.
+Logging: INFO level to stdout; each processed DOI logs success/fail status.
 
 Exit status is 0 even if some DOIs fail; errors are logged and those rows omitted.
-The merge step will outer‑join on DOI, so missing rows appear as NaNs downstream.
+The merge step will outer-join on DOI, so missing rows appear as NaNs downstream.
 """
 
 # run_worker.py

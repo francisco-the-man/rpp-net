@@ -1,15 +1,16 @@
+# -*- coding: utf-8 -*-
 """
-Chunker for target‑paper list.
+Chunker for target-paper list.
 
-Reads `data/rpp_targets.csv`, shuffles deterministically, and partitions it into
-`--n_chunks` approximately equal CSV files under `data/chunks/`.
+Reads data/rpp_targets.csv, shuffles deterministically, and partitions it into
+--n_chunks approximately equal CSV files under data/chunks/.
 
-This is run **once** before submitting the job array:
+This is run once before submitting the job array:
 
     python src/split_targets.py --n_chunks 100
 
-Columns in the original CSV are preserved so that per‑chunk files still contain
-`pub_year` and `repl_year` for later cutoff logic.
+Columns in the original CSV are preserved so that per-chunk files still contain
+pub_year and repl_year for later cutoff logic.
 """
 
 import pandas as pd, argparse, pathlib, math, random

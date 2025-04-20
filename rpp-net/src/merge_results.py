@@ -1,15 +1,16 @@
+# -*- coding: utf-8 -*-
 """
-Post‑processing glue: concatenate per‑chunk feature CSVs and join ground truth.
+Post-processing glue: concatenate per-chunk feature CSVs and join ground truth.
 
-1. Glob `data/features/results_chunk_*.csv` → concat
-2. Read `data/rpp_targets.csv`
-3. Left‑join on 'doi' → `data/master_features.csv`
+1. Glob data/features/results_chunk_*.csv -> concat
+2. Read data/rpp_targets.csv
+3. Left-join on 'doi' -> data/master_features.csv
 
 Run after the SLURM array completes:
 
     python src/merge_results.py
 
-The resulting master file is the single source‑of‑truth table for modelling.
+The resulting master file is the single source-of-truth table for modelling.
 It contains one row per original RPP paper and ~20 engineered features; missing
 rows (failed fetches) will have NaNs for feature columns.
 """
