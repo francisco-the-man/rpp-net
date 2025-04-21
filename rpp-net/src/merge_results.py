@@ -18,7 +18,15 @@ rows (failed fetches) will have NaNs for feature columns.
 import glob, pandas as pd, pathlib
 
 chunks = glob.glob("data/features/results_chunk_*.csv")
-df = pd.concat(map(pd.read_csv, chunks), ignore_index=True)
+dfs = []
+for f in chunks:
+    try:
+        dfs.append(pd.read_csv(f))
+    except pd.errors.EmptyDataError:
+        print(f"Skipping empty file: {f}")
+if not dfs:
+    raise RuntimeError("No non-empty chunk files found!")
+df = pd.concat(dfs, ignore_index=True)
 targets = pd.read_csv("data/rpp_targets.csv")
 master = targets.merge(df, on="doi", how="left")
 pathlib.Path("data").mkdir(exist_ok=True)
