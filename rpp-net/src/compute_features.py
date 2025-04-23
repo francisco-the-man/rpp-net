@@ -12,16 +12,14 @@ Structural metrics
 3. clustering coef   – local transitivity at root
 4. betweenness       – root's betweenness on undirected ego
 5. Louvain modularity
-6. Gini coefficient  – inequality of citation counts
-7. σ small‑worldness – Humphries‑Gurney formulation
+6. σ small‑worldness – Humphries‑Gurney formulation
 
 Authorship‑homophily metrics
 ----------------------------
+7. Gini coefficient  – inequality of citation counts
 8. assort_inst       – institutional assortativity
-9. assort_country    – country assortativity
-10. assort_topic     – concept/topic assortativity
-11. assort_gender    – gender assortativity
-12. root_same_inst_frac – fraction of co‑authors sharing root‑author institution
+9. assort_citation   – citation count assortativity
+10. pbi_mean         – PBI mean
 
 Implementation notes
 --------------------
@@ -39,11 +37,164 @@ feats = features_from_network(raw_net_dict, root_doi="10.1037/...")
 import networkx as nx, numpy as np
 from typing import Dict, Any
 import community as community_louvain  # Import python-louvain as community
+import requests
+import os
 
-def _gini(values):
-    if not values: return None
-    cum = np.cumsum(sorted(values)) / sum(values)
-    return 1 - 2 * np.trapz(cum, dx = 1/len(values))
+BASE = os.getenv("OPENALEX_ENDPOINT", "https://api.openalex.org")
+OPENALEX_API_KEY = os.getenv("OPENALEX_API_KEY")
+
+def time_slice_citation_count(author, year):
+    '''
+    Calculate the h-index for an author at a specific year.
+    '''
+    # get author citation data from pyalex using author id:
+    author_id = author.get("id")
+    url = f"{BASE}/authors/{author_id}?select=counts_by_year"
+    if OPENALEX_API_KEY:
+        url += f"&api_key={OPENALEX_API_KEY}"
+    author_info = requests.get(url).json()
+    author_info = author_info.get("counts_by_year", [])
+
+    for entry in author_info:
+        year_count = entry.get("year")
+        if year <= year_count:
+            sliced_count = entry.get("cited_by_count")
+            print(f'Picked {sliced_count} citations for {author_id} in {year}')
+            return sliced_count
+    return 0
+
+def build_author_graph(net):
+    # Map author_id -> {'dois': set, 'inst_ids': set}
+    author_info = {}
+    doi_to_authors = {}
+
+    # Build author info and doi->authors mapping
+    for doi, meta in net["nodes"].items():
+        authors = []
+        for auth in meta.get("authorships", []):
+            author = auth.get("author", {})
+            author_id = author.get("id")
+            
+            if not author_id:
+                continue
+            # Get all institution ids from affiliations
+            inst_ids = [a.get("id") for a in auth.get("institutions", [])]
+            if author_id not in author_info:
+                year = meta.get("publication_year")
+                author_info[author_id] = {'dois': set(), 'inst_ids': set(), 'citation_count': time_slice_citation_count(author, year)}
+            author_info[author_id]['dois'].add(doi)
+            author_info[author_id]['inst_ids'].update(inst_ids)
+            authors.append(author_id)
+        doi_to_authors[doi] = authors
+
+    G = nx.DiGraph()
+    # Add nodes
+    for author_id, info in author_info.items():
+        G.add_node(author_id, dois=list(info['dois']), inst_ids=list(info['inst_ids']))
+
+    # Add edges: for each citation, connect authors of citing to authors of cited
+    for citing_doi, cited_doi in net["edges"]:
+        citing_authors = doi_to_authors.get(citing_doi, [])
+        cited_authors = doi_to_authors.get(cited_doi, [])
+        for a1 in citing_authors:
+            for a2 in cited_authors:
+                    G.add_edge(a1, a2)
+    return G
+
+def gini_coefficient(author_graph):
+    # Get weighted out-degrees, using max(0, degree) to ensure non-negative values
+    weighted_out_degrees = [max(0, d) for n, d in author_graph.out_degree(weight='weight')]
+    if sum(weighted_out_degrees) == 0:
+        return 0
+
+    sorted_degrees = sorted(weighted_out_degrees)
+    cumulative_degrees = np.cumsum(sorted_degrees)
+
+    # Calculate percentages
+    total_degree = cumulative_degrees[-1]
+    y = cumulative_degrees / total_degree
+    x = np.arange(1, len(y) + 1) / len(y)
+
+    # Calculate Gini coefficient
+    B = np.trapezoid(y, x)
+    A = 0.5 - B  # Area between line of equality and Lorenz curve
+    gini = A / (A + B)
+
+    return gini
+
+def assortativity_by_institution(G):
+    """Compute institution assortativity coefficient for the graph."""
+    # Create a new graph with first institution ID only (as string)
+    H = nx.DiGraph()
+    
+    for node, data in G.nodes(data=True):
+        # Get the first institution ID if available
+        inst_id = None
+        if data.get('inst_ids') and len(data['inst_ids']) > 0:
+            inst_id = str(data['inst_ids'][0])  # Convert to string to ensure hashability
+            
+        if inst_id:  # Only add nodes with institution data
+            H.add_node(node, inst_id=inst_id)
+    
+    # Add edges between nodes that exist in H
+    for u, v in G.edges():
+        if H.has_node(u) and H.has_node(v):
+            H.add_edge(u, v)
+    
+    if H.number_of_nodes() < 2:
+        print("Not enough nodes with institution data")
+        return None
+        
+    try:
+        # Compute assortativity coefficient using single institution ID
+        assortativity = nx.attribute_assortativity_coefficient(H, 'inst_id')
+        return assortativity
+    except Exception as e:
+        print(f"Error computing assortativity: {e}")
+        return None
+
+def assortativity_by_citation_count(G):
+    # Create a new graph with citation count only (as an int)
+    H = nx.DiGraph()
+    for node, data in G.nodes(data=True):
+        citation_count = data.get('citation_count', 0)
+        if citation_count > 0:
+            H.add_node(node, citation_count=citation_count)
+    
+    for u, v in G.edges():
+        if H.has_node(u) and H.has_node(v):
+            H.add_edge(u, v)
+    
+    if H.number_of_nodes() < 2:
+        print("Not enough nodes with citation count data")
+        return None
+
+    assortativity = nx.attribute_assortativity_coefficient(H, 'citation_count')
+    return assortativity
+
+def pbi_mean(G, prestige_attr="citation_count"):
+    """
+    PBI_mean  =  (mean prestige of CITED authors  –  mean prestige of ALL authors)
+                 /  SD(prestige of ALL authors)
+
+    • Baseline = every author node in the ego graph
+    • Cited    = tail nodes of any edge (receive ≥1 intra-ego citation)
+    """
+    # --- baseline distribution ---
+    base_scores = [d[prestige_attr] for n, d in G.nodes(data=True)
+                   if d.get(prestige_attr) is not None]
+    if len(base_scores) < 2 or np.std(base_scores) == 0:
+        return None
+
+    # --- cited set ---
+    cited_nodes  = {v for _, v in G.edges()}     # heads of edges
+    cited_scores = [G.nodes[v][prestige_attr] for v in cited_nodes
+                    if G.nodes[v].get(prestige_attr) is not None]
+    if not cited_scores:
+        return 0.0
+
+    diff = np.mean(cited_scores) - np.mean(base_scores)
+    return diff / np.std(base_scores)
 
 def features_from_network(net: Dict[str, Any], root_doi: str) -> dict:
     # ---------------- Build graphs -----------------
@@ -68,9 +219,6 @@ def features_from_network(net: Dict[str, Any], root_doi: str) -> dict:
     partition = community_louvain.best_partition(Ud_ego)
     feats["modularity"] = community_louvain.modularity(partition, Ud_ego)
 
-    # -------------- Gini of citations --------------
-    cites = [G.out_degree(n) for n in Ud_ego.nodes]
-    feats["gini"] = _gini(cites)
 
     # -------------- Small‑world σ ------------------
     try:
@@ -83,63 +231,11 @@ def features_from_network(net: Dict[str, Any], root_doi: str) -> dict:
     except Exception:
         feats["sigma_sw"] = None
 
-    # -------------- Homophily ----------------------
-    # Build bipartite author–paper graph  (mini‑scope inside ego)
-    B = nx.Graph()
-    for author_id, doi in net["author_edges"]:
-        B.add_node(author_id, type="author")
-        B.add_node(doi, type="paper")
-        B.add_edge(author_id, doi)
-
-    # And use the author metadata directly:
-    attr_inst, attr_country, attr_topic, attr_gender = {}, {}, {}, {}
-
-    for author_id, author_data in net["authors"].items():
-        # Extract institution and country
-        if 'last_known_institution' in author_data:
-            inst = author_data['last_known_institution']
-            if inst:
-                inst_id = inst['id'].split('/')[-1]
-                attr_inst[author_id] = inst_id
-                if 'country_code' in inst:
-                    attr_country[author_id] = inst['country_code']
-        
-        # Extract topic from works
-        if 'x_concepts' in author_data and author_data['x_concepts']:
-            attr_topic[author_id] = author_data['x_concepts'][0]['id']
-        
-        # Extract gender if available
-        if 'gender' in author_data:
-            attr_gender[author_id] = author_data['gender']
-
-    authors = {n for n,d in B.nodes(data=True) if d["type"]=="author"}
-    Aproj   = nx.algorithms.bipartite.weighted_projected_graph(B, authors)
-
-    def assort(attr_dict, label):
-        nx.set_node_attributes(Aproj, attr_dict, "x")
-        try:
-            return nx.attribute_assortativity_coefficient(Aproj, "x")
-        except ZeroDivisionError:  # single‑category
-            return None
-
-    feats.update({
-        "assort_inst":    assort(attr_inst,    "inst"),
-        "assort_country": assort(attr_country, "country"),
-        "assort_topic":   assort(attr_topic,   "topic"),
-        "assort_gender":  assort(attr_gender,  "gender"),
-    })
-
-    # root‑centric fallback
-    root_authors = []
-    for author_edge in net["author_edges"]:
-        if author_edge[1] == root_doi:  # If paper is root
-            root_authors.append(author_edge[0])  # Add author ID
-
-    tot=same=0
-    for ra in root_authors:
-        for nb in Aproj.neighbors(ra):
-            tot += 1
-            if attr_inst.get(ra) == attr_inst.get(nb): same += 1
-    feats["root_same_inst_frac"] = same/tot if tot else None
+    # -------------- Author Graph ---------------------
+    author_graph = build_author_graph(net)
+    feats["gini"] = gini_coefficient(author_graph)
+    feats["assort_inst"] = assortativity_by_institution(author_graph)
+    feats["assort_citation"] = assortativity_by_citation_count(author_graph)
+    feats["pbi_mean"] = pbi_mean(author_graph)
 
     return feats

@@ -39,12 +39,13 @@ from email.utils import parsedate_tz, mktime_tz
 
 nest_asyncio.apply()
 BASE = os.getenv("OPENALEX_ENDPOINT", "https://api.openalex.org")
+OPENALEX_API_KEY = os.getenv("OPENALEX_API_KEY")
 
 log = logging.getLogger(__name__)
 
 # ── Per‑task rate‑cap ──────────────────────────────────────────
-# We allow at most 5 requests / second *inside this Python process*.
-MIN_DELAY = 1.0          # seconds   (1 / 5  r/s)
+
+MIN_DELAY = 0.1          
 _last_call = 0.0
 _lock = asyncio.Lock()    # protects _last_call across async tasks
 
@@ -57,6 +58,12 @@ async def _get_json(session: aiohttp.ClientSession, url: str, retries: int = 3) 
     """
     global _last_call
     backoff = 2  # starting back‑off for non‑429 errors
+
+    if OPENALEX_API_KEY:
+        if "?" in url:
+            url += f"&api_key={OPENALEX_API_KEY}"
+        else:
+            url += f"?api_key={OPENALEX_API_KEY}"
 
     for attempt in range(retries):
         async with _lock:
