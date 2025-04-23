@@ -15,10 +15,10 @@
 ###############################################################################
 
 #SBATCH --job-name=rpp_net
-#SBATCH --array=0-99%5                     # 100 chunks → adjust if n_chunks differs
+#SBATCH --array=0-99%10                     # 100 chunks → adjust if n_chunks differs
 #SBATCH --cpus-per-task=4               # aiohttp concurrency lives on threads
 #SBATCH --mem=8G
-#SBATCH --time=02:00:00
+#SBATCH --time=01:00:00
 #SBATCH --output=logs/%A_%a.out          # %A = jobID, %a = array index
 # SBATCH --gres=       # comment in if GPUs are ever needed
 
@@ -28,14 +28,14 @@ echo "🟢  SLURM task $SLURM_ARRAY_TASK_ID on $(hostname) @ $(date)"
 VENV_HOME=$HOME/venvs/rpp_net_env          # same path used above
 source "$VENV_HOME/bin/activate"
 
-export OPENALEX_API_KEY="averylou@stanford.edu"
+export OPENALEX_API_KEY="pk_xxxxxxxxxxxxxxxxxx"
 export OPENALEX_USER_AGENT="mailto:averylou@stanford.edu"
 
 CHUNK_ID=$(printf "%02d" "${SLURM_ARRAY_TASK_ID}")
 python src/run_worker.py \
         --chunk_id "$CHUNK_ID" \
         --max_depth 2 \
-        --max_nodes 1000 \
-        --n_concurrent 1
+        --max_nodes 1500 \
+        --n_concurrent 2
 
 echo "✅  SLURM task $SLURM_ARRAY_TASK_ID finished @ $(date)"
