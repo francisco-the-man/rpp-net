@@ -59,7 +59,10 @@ def main():
         try:
             # publication year used as cut‑off unless repl_year available
             meta_row = df[df.doi==doi].iloc[0]
-            cutoff = meta_row.get("repl_year", meta_row.pub_year)
+
+            date = meta_row.get("repl_year", meta_row.date)
+            cutoff = date.split("-")[0]
+
             net = fetch_network_sync(doi, cutoff, args.max_depth,
                                      args.max_nodes, args.n_concurrent)
             pathlib.Path("data/networks_raw").mkdir(parents=True, exist_ok=True)
