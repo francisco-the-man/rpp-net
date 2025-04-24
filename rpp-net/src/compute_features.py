@@ -48,6 +48,7 @@ def time_slice_citation_count(author, year):
     Calculate the h-index for an author at a specific year.
     '''
     # get author citation data from pyalex using author id:
+    print("DEBUG: author =", author, "year =", year)
     author_id = author.get("id")
     url = f"{BASE}/authors/{author_id}?select=counts_by_year"
     if OPENALEX_API_KEY:
