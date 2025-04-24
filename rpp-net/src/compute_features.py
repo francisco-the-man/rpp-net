@@ -83,6 +83,7 @@ def build_author_graph(net):
                 continue
             # Get all institution ids from affiliations
             inst_ids = [a.get("id") for a in auth.get("institutions", [])]
+            print(f'DEBUG: author_id = {author_id} inst_ids = {inst_ids} author = {author}')
             if author_id not in author_info:
                 year = meta.get("publication_year")
                 author_info[author_id] = {'dois': set(), 'inst_ids': set(), 'citation_count': time_slice_citation_count(author, year)}
@@ -236,7 +237,7 @@ def features_from_network(net: Dict[str, Any], root_doi: str) -> dict:
         feats["sigma_sw"] = None
 
     # -------------- Author Graph ---------------------
-    author_graph = build_author_graph(net)
+    author_graph = build_author_graph(G)
     feats["gini"] = gini_coefficient(author_graph)
     feats["assort_inst"] = assortativity_by_institution(author_graph)
     feats["assort_citation"] = assortativity_by_citation_count(author_graph)
