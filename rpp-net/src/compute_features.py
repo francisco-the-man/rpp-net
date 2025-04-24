@@ -95,7 +95,7 @@ def build_author_graph(net):
     G = nx.DiGraph()
     # Add nodes
     for author_id, info in author_info.items():
-        G.add_node(author_id, dois=list(info['dois']), inst_ids=list(info['inst_ids']))
+        G.add_node(author_id, dois=list(info['dois']), inst_ids=list(info['inst_ids']), citation_count=info['citation_count'])
 
     # Add edges: for each citation, connect authors of citing to authors of cited
     for citing_doi, cited_doi in net["edges"]:
@@ -237,7 +237,7 @@ def features_from_network(net: Dict[str, Any], root_doi: str) -> dict:
         feats["sigma_sw"] = None
 
     # -------------- Author Graph ---------------------
-    author_graph = build_author_graph(G)
+    author_graph = build_author_graph(net)
     feats["gini"] = gini_coefficient(author_graph)
     feats["assort_inst"] = assortativity_by_institution(author_graph)
     feats["assort_citation"] = assortativity_by_citation_count(author_graph)
