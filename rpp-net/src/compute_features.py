@@ -50,6 +50,8 @@ def time_slice_citation_count(author, year):
     # get author citation data from pyalex using author id:
     print("DEBUG: author =", author, "year =", year)
     author_id = author.get("id")
+    if author_id and author_id.startswith("https://openalex.org/"):
+        author_id = author_id.split("/")[-1]
     url = f"{BASE}/authors/{author_id}?select=counts_by_year"
     if OPENALEX_API_KEY:
         url += f"&api_key={OPENALEX_API_KEY}"
