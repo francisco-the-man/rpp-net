@@ -61,7 +61,8 @@ def main():
             meta_row = df[df.doi==doi].iloc[0]
 
             date = meta_row.get("repl_year", meta_row.date)
-            cutoff = date.split("-")[0]
+            cutoff = int(date.split("-")[0])
+            log.info(f"Cutoff: {cutoff}, type {type(cutoff)}")
 
             net = fetch_network_sync(doi, cutoff, args.max_depth,
                                      args.max_nodes, args.n_concurrent)
