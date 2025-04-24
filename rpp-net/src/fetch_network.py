@@ -45,7 +45,7 @@ log = logging.getLogger(__name__)
 
 # ── Per‑task rate‑cap ──────────────────────────────────────────
 
-MIN_DELAY = 0.1          
+MIN_DELAY = 0.1         
 _last_call = 0.0
 _lock = asyncio.Lock()    # protects _last_call across async tasks
 

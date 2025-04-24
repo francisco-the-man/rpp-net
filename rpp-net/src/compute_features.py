@@ -52,6 +52,7 @@ def time_slice_citation_count(author, year):
     url = f"{BASE}/authors/{author_id}?select=counts_by_year"
     if OPENALEX_API_KEY:
         url += f"&api_key={OPENALEX_API_KEY}"
+    print(f"Fetching {url}")
     author_info = requests.get(url).json()
     author_info = author_info.get("counts_by_year", [])
 
