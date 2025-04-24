@@ -43,6 +43,17 @@ import os
 BASE = os.getenv("OPENALEX_ENDPOINT", "https://api.openalex.org")
 OPENALEX_API_KEY = os.getenv("OPENALEX_API_KEY")
 
+def get_author_info(url):
+    try:
+        r = requests.get(url, timeout=20)
+        if r.status_code == 404:
+            return None        # missing author, treat as 0 prestige
+        r.raise_for_status()
+        return r.json()
+    except requests.RequestException as e:
+        print(f"[warn] OpenAlex fetch failed: {e}")
+        return None
+
 def time_slice_citation_count(author, year):
     '''
     Calculate the h-index for an author at a specific year.
@@ -56,7 +67,9 @@ def time_slice_citation_count(author, year):
     if OPENALEX_API_KEY:
         url += f"&api_key={OPENALEX_API_KEY}"
     print(f"Fetching {url}")
-    author_info = requests.get(url).json()
+    author_info = get_author_info(url)
+    if author_info is None:
+        return 0
     author_info = author_info.get("counts_by_year", [])
 
     for entry in author_info:
