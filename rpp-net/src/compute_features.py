@@ -134,7 +134,7 @@ def gini_coefficient(author_graph):
     x = np.arange(1, len(y) + 1) / len(y)
 
     # Calculate Gini coefficient
-    B = np.trapezoid(y, x)
+    B = np.trapz(y, x)
     A = 0.5 - B  # Area between line of equality and Lorenz curve
     gini = A / (A + B)
 
