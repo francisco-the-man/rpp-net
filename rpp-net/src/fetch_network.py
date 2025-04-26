@@ -135,6 +135,7 @@ async def _crawl(root_doi: str,
             if depth < max_depth:
                 for ref in meta.get("referenced_works", []):
                     ref_doi = ref.split("/")[-1]
+                    log.info(f'adding edge {doi} -> {ref_doi}')
                     edges.append((doi, ref_doi))
                     frontier.append((ref_doi, depth + 1))
 
