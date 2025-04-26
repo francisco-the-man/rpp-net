@@ -60,8 +60,8 @@ def main():
             # publication year used as cut‑off unless repl_year available
             meta_row = df[df.doi==doi].iloc[0]
 
-            date = meta_row.get("repl_year", meta_row.year)
-            cutoff = int(date.split("-")[0])
+            date = meta_row.get("repl_year", meta_row.year) #.date for rpp
+            cutoff = date #cutoff = int(date.split("-")[0])
             log.info(f"Cutoff: {cutoff}, type {type(cutoff)}")
 
             net = fetch_network_sync(doi, cutoff, args.max_depth,
