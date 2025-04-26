@@ -92,6 +92,9 @@ async def _get_json(session: aiohttp.ClientSession, url: str, retries: int = 3) 
                     await asyncio.sleep(retry + jitter)
                     backoff *= 2
                     continue
+                if r.status == 404:             # <── handle missing work                    
+                    log.warning(f"404 for {url} – skipping")
+                    return None                # propagate a sentinel
                 r.raise_for_status()
                 return await r.json()
 
@@ -127,7 +130,12 @@ async def _crawl(root_doi: str,
             else:
                 encoded_doi = doi.replace("/", "%2F").replace(":", "%3A")
                 url = f"{BASE}/works/doi:{encoded_doi}"
-            async with sem: meta = await _get_json(sess, url)
+            # async with sem: meta = await _get_json(sess, url)
+            async with sem:
+                meta = await _get_json(sess, url)
+            if meta is None:                    # ← 404 or hard-missing record
+                continue
+            
             if meta.get("publication_year", 0) > cutoff:
                 continue                                         # temporal slice
 
