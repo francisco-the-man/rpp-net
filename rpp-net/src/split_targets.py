@@ -7,7 +7,7 @@ Reads data/rpp_targets.csv, shuffles deterministically, and partitions it into
 
 This is run once before submitting the job array:
 
-    python src/split_targets.py --n_chunks 100
+    python src/split_targets.py --n_chunks 20
 
 Columns in the original CSV are preserved so that per-chunk files still contain
 pub_year and repl_year for later cutoff logic.
