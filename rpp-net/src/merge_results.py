@@ -10,6 +10,10 @@ Run after the SLURM array completes:
 
     python src/merge_results.py
 
+Use:
+source $HOME/venvs/rpp_net_env/bin/activate
+pip install -r requirements.txt
+
 The resulting master file is the single source-of-truth table for modelling.
 It contains one row per original RPP paper and ~20 engineered features; missing
 rows (failed fetches) will have NaNs for feature columns.
@@ -27,8 +31,8 @@ for f in chunks:
 if not dfs:
     raise RuntimeError("No non-empty chunk files found!")
 df = pd.concat(dfs, ignore_index=True)
-targets = pd.read_csv("data/rpp_targets.csv")
+targets = pd.read_csv("data/rpCB_targets.csv")
 master = targets.merge(df, on="doi", how="left")
 pathlib.Path("data").mkdir(exist_ok=True)
-master.to_csv("data/master_features.csv", index=False)
-print("Wrote data/master_features.csv  🔥")
+master.to_csv("data/rpCB_master_features.csv", index=False)
+print("Wrote data/rpCB_master_features.csv  🔥")

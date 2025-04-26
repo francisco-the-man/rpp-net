@@ -1,0 +1,24 @@
+doi,study_num,paper_name,journal,year,effect_size_original,effect_size_replication,original_p_value,replication_p_value,replication_direction,replication_significance
+10.1038/nature09144,1,A coding-independent function of gene and pseudogene mRNAs regulates tumour biology.,Nature,2010,8.637247076923076,1.4320525666666668,0.00908790838846154,0.2056295156111111,same,False
+10.1038/nature09557,5,Tumour vascularization via endothelial differentiation of glioblastoma stem-like cells,Nature,2010,56.52234633333333,1.6677430833333335,0.14304742333333334,0.35174244,same,False
+10.1038/nature09208,6,Diverse somatic mutation patterns and pathway alterations in human cancers.,Nature,2010,6.409596,4.317946,0.02348687,0.006135204,same,True
+10.1016/j.cell.2009.12.040,7,Kinase-dead BRAF and oncogenic RAS cooperate to drive tumor progression through CRAF.,Cell,2010,,0.6790123333333332,,0.04430014300000001,same,True
+10.1038/nature08833,8,RAF inhibitors prime wild-type RAF to activate the MAPK pathway and enhance growth.,Nature,2010,,0.4082248125,,0.3681486869,same,False
+10.1038/ncb2048,9,Wnt activity defines colon cancer stem cells and is regulated by the microenvironment.,Nature Cell Biology,2010,0.7407645195,0.1884618525,0.09674497710000005,0.12126375121817028,same,False
+10.1038/nature09627,12,COT drives resistance to RAF inhibition through MAP kinase pathway reactivation,Nature,2010,,0.9594038333333333,,0.020785304666666667,same,True
+10.1126/science.1183057,15,Coadministration of a Tumor-Penetrating Peptide Enhances the Efficacy of Cancer Drugs,Science,2010,2.8445325458575,0.1381612907,0.242135755025,0.616367025,same,False
+10.7554/elife.12626,16,The common feature of leukemia-associated IDH1 and IDH2 mutations is a neomorphic enzyme activity converting alpha-ketoglutarate to 2-hydroxyglutarate,Cancer Cell,2010,6.503673333333334,3.3471387125,1.5745862e-05,0.11600632784249999,same,False
+10.1016/j.cell.2011.08.017,19,BET bromodomain inhibition as a therapeutic strategy to target c-Myc,Cell,2011,8.2806075,8.235625,0.0895793956,0.07231324,same,False
+10.1016/j.cell.2011.05.040,20,Biomechanical remodeling of the microenvironment by stromal caveolin-1 favors tumor invasion and metastasis.,Cell,2011,0.6190823428571429,0.07516426,0.11960310907142857,0.3789866614285714,same,False
+10.1126/scitranslmed.3001318,21,Discovery and Preclinical Validation of Drug Indications Using Compendia of Public Gene Expression Data,Science Translational Medicine,2011,1.6563517,0.6702336666666667,0.1193759909,0.18350720333333334,same,False
+10.1016/j.cell.2011.09.029,24,Coding-independent regulation of the tumor suppressor PTEN by competing endogenous mRNAs.,Cell,2011,5.6457907035714285,0.9038252107142857,0.019850468442857143,0.18486305000714287,same,False
+10.1038/nm.2284,28,The microRNA miR-34a inhibits prostate cancer stem cells and metastasis by directly repressing CD44.,Nature Medicine,2011,1.5908590999999999,-0.09356661599999999,0.1296461425,0.63854846,different,False
+10.1038/nature10509,29,Inhibition of BET recruitment to chromatin as an effective treatment for MLL-fusion leukaemia,Nature,2011,13.74109,5.517838833333333,0.04276078055,0.2288034071666667,same,False
+10.1038/nature11005,37,Systematic identification of genomic markers of drug sensitivity in cancer cells,Nature,2012,3.69907166,0.34285715,0.06614384626,0.30389160000000004,different,False
+10.1073/pnas.1121623109,39,The CD47-signal regulatory protein alpha (SIRPa) interaction is a therapeutic target for human solid tumors,PNAS,2012,2.541195,-1.131789,0.00469753,0.103811,different,False
+10.1126/science.1224820,41,Intestinal inflammation targets cancer-inducing activity of the microbiota.,Science,2012,1.691181,1.5667170000000001,0.5402393,0.12113765,same,False
+10.1038/nm.2753,42,Melanoma exosomes educate bone marrow progenitor cells toward a pro-metastatic phenotype through MET.,Nature Medicine,2012,2.4086575,0.147881215,0.0048003822500000005,0.784908875,same,False
+10.1038/nature11071,44,Melanoma genome sequencing reveals frequent PREX2 mutations,Nature,2012,6.4797832500000005,0.8916378,0.01800756825,0.742974925,different,False
+10.1038/nature10860,47,IDH mutation impairs histone demethylation and results in a block to cell differentiation.,Nature,2012,1.1455612272727274,1.5817625214285715,0.07229927881818181,0.40833588007214283,same,False
+10.1016/j.cell.2012.08.026,48,Transcriptional amplification in tumor cells with elevated c-Myc,Cell,2012,0.8807853314285714,0.56096976,0.007041060444285715,0.06018874107149493,same,False
+10.7554/elife.10012,50,Fusobacterium nucleatum infection is prevalent in human colorectal carcinoma,Genome Research,2012,0.4507904,0.2389425,2.52e-06,0.03207874,same,True

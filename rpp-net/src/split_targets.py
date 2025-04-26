@@ -25,7 +25,7 @@ def main():
     args = ap.parse_args()
 
     # Check if input file exists
-    input_path = pathlib.Path("data/rpp_targets.csv")
+    input_path = pathlib.Path("data/rpCB_targets.csv")
     if not input_path.exists():
         log.error(f"Input file {input_path} not found")
         return 1
