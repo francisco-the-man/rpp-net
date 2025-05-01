@@ -59,14 +59,12 @@ def time_slice_citation_count(author, year):
     Calculate the h-index for an author at a specific year.
     '''
     # get author citation data from pyalex using author id:
-    print("DEBUG: author =", author, "year =", year)
     author_id = author.get("id")
     if author_id and author_id.startswith("https://openalex.org/"):
         author_id = author_id.split("/")[-1]
     url = f"{BASE}/authors/{author_id}?select=counts_by_year"
     if OPENALEX_API_KEY:
         url += f"&api_key={OPENALEX_API_KEY}"
-    print(f"Fetching {url}")
     author_info = get_author_info(url)
     if author_info is None:
         return 0
@@ -76,7 +74,6 @@ def time_slice_citation_count(author, year):
         year_count = entry.get("year")
         if year <= year_count:
             sliced_count = entry.get("cited_by_count")
-            print(f'Picked {sliced_count} citations for {author_id} in {year}')
             return sliced_count
     return 0
 
@@ -96,7 +93,6 @@ def build_author_graph(net):
                 continue
             # Get all institution ids from affiliations
             inst_ids = [a.get("id") for a in auth.get("institutions", [])]
-            print(f'DEBUG: author_id = {author_id} inst_ids = {inst_ids} author = {author}')
             if author_id not in author_info:
                 year = meta.get("publication_year")
                 author_info[author_id] = {'dois': set(), 'inst_ids': set(), 'citation_count': time_slice_citation_count(author, year)}
@@ -120,12 +116,12 @@ def build_author_graph(net):
     return G
 
 def gini_coefficient(author_graph):
-    # Get weighted out-degrees, using max(0, degree) to ensure non-negative values
-    weighted_out_degrees = [max(0, d) for n, d in author_graph.out_degree(weight='weight')]
-    if sum(weighted_out_degrees) == 0:
+    # using max to remove negative vals
+    weighted_in_degrees = [max(0, d) for n, d in author_graph.in_degree(weight='weight')]
+    if sum(weighted_in_degrees) == 0:
         return 0
 
-    sorted_degrees = sorted(weighted_out_degrees)
+    sorted_degrees = sorted(weighted_in_degrees)
     cumulative_degrees = np.cumsum(sorted_degrees)
 
     # Calculate percentages
@@ -223,6 +219,7 @@ def features_from_network(net: Dict[str, Any], root_doi: str) -> dict:
     Ud = G.to_undirected()
     ego = nx.ego_graph(G, root_doi)
     Ud_ego = ego.to_undirected()
+    
 
     feats = {
         "doi": root_doi,
